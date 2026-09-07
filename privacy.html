@@ -218,6 +218,175 @@ footer.site a:hover { color: var(--phosphor); }
 .start-btn:hover { background: rgba(57,255,136,0.08); box-shadow: 0 0 12px rgba(57,255,136,0.25); }
 .start-btn:disabled { opacity: 0.35; cursor: default; }
 
+/* ---- Game hub (index) ---- */
+.game-list {
+  display: grid;
+  gap: 14px;
+  padding: 10px 0 30px;
+}
+
+.game-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  padding: 18px 20px;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.game-card:hover {
+  border-color: var(--phosphor-dim);
+  transform: translateY(-2px);
+}
+
+.game-card .name {
+  font-size: 17px;
+  color: var(--phosphor);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.game-card .name .play {
+  font-size: 11px;
+  color: var(--amber);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.game-card .desc {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* ---- Reflex test game ---- */
+.reflex-box {
+  width: min(92vw, 420px);
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  border: 1px solid var(--panel-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+  text-align: center;
+  padding: 20px;
+}
+.reflex-box.idle { background: var(--panel); }
+.reflex-box.waiting { background: #3a1414; }
+.reflex-box.go { background: #123a1e; }
+.reflex-box.early { background: #3a1414; }
+
+.reflex-box .big {
+  font-size: 28px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+.reflex-box.waiting .big { color: #ff6b6b; }
+.reflex-box.go .big { color: var(--phosphor); text-shadow: 0 0 14px var(--phosphor); }
+.reflex-box.idle .big { color: var(--text); }
+.reflex-box.early .big { color: #ff6b6b; }
+
+.reflex-box .small {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.reflex-stats {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.reflex-stats b { color: var(--phosphor); }
+
+/* ---- Number baseball game ---- */
+.terminal {
+  width: min(92vw, 420px);
+  background: var(--panel);
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.terminal .prompt {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.terminal input[type="text"] {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--panel-line);
+  color: var(--phosphor);
+  font-family: inherit;
+  font-size: 16px;
+  letter-spacing: 4px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  text-align: center;
+}
+.terminal input[type="text"]:focus {
+  outline: none;
+  border-color: var(--phosphor-dim);
+}
+
+.terminal button.guess-btn {
+  background: transparent;
+  border: 1px solid var(--phosphor-dim);
+  color: var(--phosphor);
+  font-family: inherit;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.terminal button.guess-btn:hover {
+  background: rgba(57,255,136,0.08);
+}
+.terminal button.guess-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.terminal .log {
+  font-size: 13px;
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+  border-top: 1px solid var(--panel-line);
+  padding-top: 10px;
+}
+
+.terminal .log .row {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-dim);
+}
+.terminal .log .row .code { color: var(--text); letter-spacing: 3px; }
+.terminal .log .row .result { color: var(--amber); }
+.terminal .log .row.win .result { color: var(--phosphor); }
+
+.terminal .status {
+  text-align: center;
+  font-size: 13px;
+  color: var(--amber);
+  margin-bottom: 14px;
+  min-height: 18px;
+}
+
 </style>
 </head>
 <body>
@@ -226,7 +395,10 @@ footer.site a:hover { color: var(--phosphor); }
   <div class="wrap">
     <a class="logo" href="index.html">ARCADE LAB</a>
     <nav class="site">
-      <a href="index.html">게임</a>
+      <a href="index.html">홈</a>
+      <a href="memory.html">메모리 서킷</a>
+      <a href="reaction.html">리플렉스 테스트</a>
+      <a href="baseball.html">넘버 코드</a>
       <a href="privacy.html">개인정보처리방침</a>
     </nav>
   </div>
@@ -289,7 +461,7 @@ footer.site a:hover { color: var(--phosphor); }
 <footer class="site">
   <div class="wrap" style="display:flex; justify-content:space-between; width:100%; flex-wrap:wrap; gap:10px;">
     <span>&copy; 2026 Arcade Lab</span>
-    <a href="index.html">게임으로 돌아가기</a>
+    <a href="index.html">홈으로 돌아가기</a>
   </div>
 </footer>
 

@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>넘버 코드 — Arcade Lab</title>
+<meta name="description" content="숨겨진 3자리 숫자 코드를 추리하는 숫자야구 게임, 넘버 코드를 무료로 플레이하세요.">
+<style>
 :root {
   --bg: #0a120d;
   --panel: #12201a;
@@ -379,3 +387,188 @@ footer.site a:hover { color: var(--phosphor); }
   margin-bottom: 14px;
   min-height: 18px;
 }
+
+</style>
+
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="logo" href="index.html">ARCADE LAB</a>
+    <nav class="site">
+      <a href="index.html">홈</a>
+      <a href="memory.html">메모리 서킷</a>
+      <a href="reaction.html">리플렉스 테스트</a>
+      <a href="baseball.html">넘버 코드</a>
+      <a href="privacy.html">개인정보처리방침</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero wrap">
+  <h1>넘버 코드</h1>
+  <p>숨겨진 3자리 숫자 코드를 추리하세요. 스트라이크와 볼 힌트로 정답을 좁혀갑니다.</p>
+</div>
+
+<div class="ad-slot">
+  <span class="tag">AD</span>
+  광고 영역 (상단 배너, 예: 728×90 또는 반응형)
+</div>
+
+<section class="game-section">
+  <div class="cabinet">
+    <div class="vents"><span></span><span></span><span></span><span></span><span></span></div>
+
+    <div class="screen">
+      <div class="hud">
+        <span>TRY <b id="tries">0</b></span>
+        <span>BEST <b id="best">-</b></span>
+      </div>
+
+      <div class="game-title">NUMBER CODE</div>
+      <div class="game-subtitle">서로 다른 숫자 3자리를 맞춰보세요 (0~9)</div>
+
+      <div class="terminal">
+        <div class="status" id="status">숫자 3자리를 입력하고 확인을 누르세요</div>
+        <div class="prompt">
+          <input type="text" id="guessInput" maxlength="3" inputmode="numeric" placeholder="375">
+          <button class="guess-btn" id="guessBtn">확인</button>
+        </div>
+        <div class="log" id="log"></div>
+      </div>
+
+      <button class="start-btn" id="resetBtn" style="margin-top:14px;">다시 시작</button>
+    </div>
+  </div>
+</section>
+
+<div class="wrap about">
+  <h2>이 게임은?</h2>
+  <p>
+    컴퓨터가 서로 다른 숫자 3개로 만든 코드를 숨겨놓았습니다. 숫자와 자리가 모두 맞으면
+    스트라이크(S), 숫자는 맞지만 자리가 다르면 볼(B)입니다. 3스트라이크가 나오면 정답입니다.
+  </p>
+</div>
+
+<script>
+  const triesEl = document.getElementById('tries');
+  const bestEl = document.getElementById('best');
+  const statusEl = document.getElementById('status');
+  const inputEl = document.getElementById('guessInput');
+  const guessBtn = document.getElementById('guessBtn');
+  const logEl = document.getElementById('log');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let secret = '';
+  let tries = 0;
+  let best = null;
+  let finished = false;
+
+  function makeSecret() {
+    const digits = ['0','1','2','3','4','5','6','7','8','9'];
+    for (let i = digits.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [digits[i], digits[j]] = [digits[j], digits[i]];
+    }
+    return digits.slice(0, 3).join('');
+  }
+
+  function resetGame() {
+    secret = makeSecret();
+    tries = 0;
+    finished = false;
+    triesEl.textContent = '0';
+    statusEl.textContent = '숫자 3자리를 입력하고 확인을 누르세요';
+    statusEl.style.color = '';
+    logEl.innerHTML = '';
+    inputEl.value = '';
+    inputEl.disabled = false;
+    guessBtn.disabled = false;
+    inputEl.focus();
+  }
+
+  function judge(guess) {
+    let strikes = 0, balls = 0;
+    for (let i = 0; i < 3; i++) {
+      if (guess[i] === secret[i]) strikes++;
+      else if (secret.includes(guess[i])) balls++;
+    }
+    return { strikes, balls };
+  }
+
+  function submitGuess() {
+    if (finished) return;
+    const guess = inputEl.value.trim();
+
+    if (!/^[0-9]{3}$/.test(guess)) {
+      statusEl.textContent = '숫자 3자리를 입력하세요';
+      statusEl.style.color = '#ff6b6b';
+      return;
+    }
+    if (new Set(guess.split('')).size !== 3) {
+      statusEl.textContent = '서로 다른 숫자 3개여야 합니다';
+      statusEl.style.color = '#ff6b6b';
+      return;
+    }
+
+    tries += 1;
+    triesEl.textContent = tries;
+    const { strikes, balls } = judge(guess);
+
+    const row = document.createElement('div');
+    row.className = 'row' + (strikes === 3 ? ' win' : '');
+    const codeSpan = document.createElement('span');
+    codeSpan.className = 'code';
+    codeSpan.textContent = guess.split('').join(' ');
+    const resultSpan = document.createElement('span');
+    resultSpan.className = 'result';
+    resultSpan.textContent = strikes === 3 ? '홈런!' : `${strikes}S ${balls}B`;
+    row.appendChild(codeSpan);
+    row.appendChild(resultSpan);
+    logEl.appendChild(row);
+
+    if (strikes === 3) {
+      finished = true;
+      statusEl.textContent = `정답입니다! ${tries}번만에 맞췄어요`;
+      statusEl.style.color = '';
+      inputEl.disabled = true;
+      guessBtn.disabled = true;
+      if (best === null || tries < best) {
+        best = tries;
+        bestEl.textContent = best;
+      }
+    } else {
+      statusEl.textContent = '숫자 3자리를 입력하고 확인을 누르세요';
+      statusEl.style.color = '';
+      inputEl.value = '';
+      inputEl.focus();
+    }
+  }
+
+  guessBtn.addEventListener('click', submitGuess);
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitGuess();
+  });
+  inputEl.addEventListener('input', () => {
+    inputEl.value = inputEl.value.replace(/[^0-9]/g, '').slice(0, 3);
+  });
+  resetBtn.addEventListener('click', resetGame);
+
+  resetGame();
+</script>
+
+<div class="ad-slot">
+  <span class="tag">AD</span>
+  광고 영역 (하단 배너)
+</div>
+
+<footer class="site">
+  <div class="wrap" style="display:flex; justify-content:space-between; width:100%; flex-wrap:wrap; gap:10px;">
+    <span>&copy; 2026 Arcade Lab</span>
+    <a href="privacy.html">개인정보처리방침</a>
+  </div>
+</footer>
+
+</body>
+</html>

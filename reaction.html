@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>리플렉스 테스트 — Arcade Lab</title>
+<meta name="description" content="당신의 반응속도를 밀리초 단위로 측정하는 미니 게임, 리플렉스 테스트를 무료로 플레이하세요.">
+<style>
 :root {
   --bg: #0a120d;
   --panel: #12201a;
@@ -379,3 +387,144 @@ footer.site a:hover { color: var(--phosphor); }
   margin-bottom: 14px;
   min-height: 18px;
 }
+
+</style>
+
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <a class="logo" href="index.html">ARCADE LAB</a>
+    <nav class="site">
+      <a href="index.html">홈</a>
+      <a href="memory.html">메모리 서킷</a>
+      <a href="reaction.html">리플렉스 테스트</a>
+      <a href="baseball.html">넘버 코드</a>
+      <a href="privacy.html">개인정보처리방침</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero wrap">
+  <h1>리플렉스 테스트</h1>
+  <p>화면이 초록색으로 바뀌는 순간 클릭하세요. 반응속도를 밀리초 단위로 측정합니다.</p>
+</div>
+
+<div class="ad-slot">
+  <span class="tag">AD</span>
+  광고 영역 (상단 배너, 예: 728×90 또는 반응형)
+</div>
+
+<section class="game-section">
+  <div class="cabinet">
+    <div class="vents"><span></span><span></span><span></span><span></span><span></span></div>
+
+    <div class="screen">
+      <div class="hud">
+        <span>TRY <b id="tries">0</b></span>
+        <span>BEST <b id="best">-</b></span>
+      </div>
+
+      <div class="game-title">REFLEX TEST</div>
+      <div class="game-subtitle">초록색으로 바뀌는 순간 클릭하세요</div>
+
+      <div class="reflex-box idle" id="box">
+        <div class="big" id="bigText">클릭해서 시작</div>
+        <div class="small" id="smallText">색이 바뀌면 최대한 빨리 클릭!</div>
+      </div>
+
+      <div class="reflex-stats">
+        <span>최근 <b id="lastMs">-</b></span>
+        <span>평균 <b id="avgMs">-</b></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap about">
+  <h2>이 게임은?</h2>
+  <p>
+    화면이 붉은색(대기)일 때 클릭하면 실격 처리됩니다. 초록색으로 바뀌는 정확한 순간에
+    클릭할수록 반응속도(밀리초)가 낮게 나옵니다. 평균적인 사람의 반응속도는 200~300ms 정도예요.
+  </p>
+</div>
+
+<script>
+  const box = document.getElementById('box');
+  const bigText = document.getElementById('bigText');
+  const smallText = document.getElementById('smallText');
+  const triesEl = document.getElementById('tries');
+  const bestEl = document.getElementById('best');
+  const lastMsEl = document.getElementById('lastMs');
+  const avgMsEl = document.getElementById('avgMs');
+
+  let phase = 'ready'; // ready | waiting | go | early
+  let timeoutId = null;
+  let startTime = 0;
+  let tries = 0;
+  let best = null;
+  let total = 0;
+
+  function render() {
+    box.className = 'reflex-box ' + (phase === 'ready' ? 'idle' : phase);
+    if (phase === 'ready') {
+      bigText.textContent = tries === 0 ? '클릭해서 시작' : '클릭해서 다시 도전';
+      smallText.textContent = '색이 바뀌는 순간 클릭!';
+    } else if (phase === 'waiting') {
+      bigText.textContent = '기다리세요...';
+      smallText.textContent = '아직 클릭하지 마세요';
+    } else if (phase === 'go') {
+      bigText.textContent = '지금 클릭!!';
+      smallText.textContent = '';
+    } else if (phase === 'early') {
+      bigText.textContent = '너무 빨랐어요!';
+      smallText.textContent = '클릭해서 다시 도전';
+    }
+  }
+
+  box.addEventListener('click', () => {
+    if (phase === 'ready' || phase === 'early') {
+      phase = 'waiting';
+      render();
+      const delay = 1200 + Math.random() * 2500;
+      timeoutId = setTimeout(() => {
+        phase = 'go';
+        startTime = performance.now();
+        render();
+      }, delay);
+    } else if (phase === 'waiting') {
+      clearTimeout(timeoutId);
+      phase = 'early';
+      render();
+    } else if (phase === 'go') {
+      const elapsed = Math.round(performance.now() - startTime);
+      tries += 1;
+      total += elapsed;
+      if (best === null || elapsed < best) best = elapsed;
+      triesEl.textContent = tries;
+      bestEl.textContent = best + 'ms';
+      lastMsEl.textContent = elapsed + 'ms';
+      avgMsEl.textContent = Math.round(total / tries) + 'ms';
+      phase = 'ready';
+      render();
+    }
+  });
+
+  render();
+</script>
+
+<div class="ad-slot">
+  <span class="tag">AD</span>
+  광고 영역 (하단 배너)
+</div>
+
+<footer class="site">
+  <div class="wrap" style="display:flex; justify-content:space-between; width:100%; flex-wrap:wrap; gap:10px;">
+    <span>&copy; 2026 Arcade Lab</span>
+    <a href="privacy.html">개인정보처리방침</a>
+  </div>
+</footer>
+
+</body>
+</html>
