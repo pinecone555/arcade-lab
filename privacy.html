@@ -319,20 +319,20 @@ footer.site a:hover { color: var(--phosphor); }
 
 .terminal .prompt {
   display: flex;
-  gap: 8px;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 14px;
 }
 
 .terminal input[type="text"] {
-  flex: 1;
+  width: 100%;
   background: var(--bg);
   border: 1px solid var(--panel-line);
   color: var(--phosphor);
   font-family: inherit;
   font-size: 16px;
   letter-spacing: 4px;
-  padding: 8px 10px;
+  padding: 10px;
   border-radius: 6px;
   text-align: center;
 }
@@ -342,11 +342,12 @@ footer.site a:hover { color: var(--phosphor); }
 }
 
 .terminal button.guess-btn {
+  width: 100%;
   background: transparent;
   border: 1px solid var(--phosphor-dim);
   color: var(--phosphor);
   font-family: inherit;
-  padding: 8px 16px;
+  padding: 10px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
