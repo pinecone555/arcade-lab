@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://pinecone555.github.io/arcade-lab/</loc>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://pinecone555.github.io/arcade-lab/baseball.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pinecone555.github.io/arcade-lab/block-blast.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pinecone555.github.io/arcade-lab/bubble-shooter.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pinecone555.github.io/arcade-lab/memory.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pinecone555.github.io/arcade-lab/reaction.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://pinecone555.github.io/arcade-lab/privacy.html</loc>
+    <priority>0.3</priority>
+  </url>
+</urlset>
