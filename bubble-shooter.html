@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>버블 슈터 | Arcade Lab</title>
+<style>
+  :root{
+    --bg:#0d0f1a;
+    --bg2:#151830;
+    --panel:#1a1e3a;
+    --accent:#7c5cff;
+    --accent2:#00e5c7;
+    --danger:#ff4d6d;
+    --text:#eef0ff;
+    --muted:#8b8fb8;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:radial-gradient(circle at 50% 0%, var(--bg2), var(--bg) 60%);
+    color:var(--text);
+    font-family:'Segoe UI','Malgun Gothic',sans-serif;
+    overscroll-behavior:none;
+    touch-action:none;
+    user-select:none;
+  }
+  #app{
+    max-width:480px; margin:0 auto; padding:14px;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+  }
+  h1{
+    font-size:22px; letter-spacing:1px; margin:6px 0 2px;
+    background:linear-gradient(90deg, var(--accent2), var(--accent));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    font-weight:800;
+  }
+  .sub{color:var(--muted); font-size:12px; margin-bottom:10px;}
+  .hud{
+    width:100%; display:flex; justify-content:space-between; align-items:center;
+    background:var(--panel); border-radius:14px; padding:10px 16px; margin-bottom:10px;
+    box-shadow:0 4px 18px rgba(0,0,0,0.35);
+    border:1px solid rgba(255,255,255,0.06);
+  }
+  .hud .box{text-align:center;}
+  .hud .label{font-size:11px; color:var(--muted); letter-spacing:1px;}
+  .hud .value{font-size:22px; font-weight:800; color:var(--accent2);}
+  #stage-wrap{
+    width:100%; background:var(--bg2); border-radius:14px; padding:8px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.4);
+    position:relative; overflow:hidden;
+  }
+  canvas{ display:block; width:100%; touch-action:none; }
+  #overlay{
+    position:fixed; inset:0; background:rgba(5,6,15,0.88);
+    display:none; align-items:center; justify-content:center; flex-direction:column;
+    z-index:1000; text-align:center; padding:20px;
+  }
+  #overlay h2{ font-size:28px; margin-bottom:6px; }
+  #overlay h2.win{ color:var(--accent2); }
+  #overlay h2.lose{ color:var(--danger); }
+  #overlay p{ color:var(--muted); margin-bottom:18px; }
+  #overlay button{
+    background:linear-gradient(90deg, var(--accent), var(--accent2));
+    border:none; color:#0d0f1a; font-weight:800; font-size:15px;
+    padding:12px 28px; border-radius:30px; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>BUBBLE SHOOTER</h1>
+  <div class="sub">조준해서 같은 색 3개 이상 맞춰 터뜨리세요</div>
+
+  <div class="hud">
+    <div class="box"><div class="label">SCORE</div><div class="value" id="score">0</div></div>
+    <div class="box"><div class="label">BEST</div><div class="value" id="best">0</div></div>
+    <div class="box"><div class="label">SHOTS</div><div class="value" id="shots">0</div></div>
+  </div>
+
+  <div id="stage-wrap">
+    <canvas id="game"></canvas>
+  </div>
+</div>
+
+<div id="overlay">
+  <h2 id="overlay-title">GAME OVER</h2>
+  <p id="overlay-msg">최종 점수: 0</p>
+  <button onclick="restartGame()">다시 하기</button>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const shotsEl = document.getElementById('shots');
+  const overlayEl = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlay-title');
+  const overlayMsg = document.getElementById('overlay-msg');
+
+  const COLORS = ['#ff4d6d','#ffb84d','#ffe94d','#4dd7ff','#7c5cff','#7dff8f'];
+  const COLS = 10;
+  const ROWS_VISIBLE = 12;
+  const DANGER_ROW = 11;
+
+  let CW, CH, R, HEXW, ROWH;
+  let grid; // grid[row][col] = colorIndex or null. odd rows offset by half.
+  let score = 0, best = 0, shots = 0;
+  let shooterAngle = -Math.PI/2;
+  let currentColor, nextColor;
+  let flying = null; // {x,y,vx,vy,color}
+  let particles = [];
+  let running = true;
+  let aiming = false;
+
+  best = parseInt(localStorage.getItem('bs_best') || '0', 10);
+
+  function resize(){
+    const wrap = document.getElementById('stage-wrap');
+    CW = wrap.clientWidth - 16;
+    R = CW / COLS / 2;
+    HEXW = R * 2;
+    ROWH = R * 1.73;
+    CH = ROWH * ROWS_VISIBLE + R*4;
+    canvas.width = CW * devicePixelRatio;
+    canvas.height = CH * devicePixelRatio;
+    canvas.style.height = CH + 'px';
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    draw();
+  }
+
+  function cellX(row, col){
+    const offset = (row % 2 === 1) ? R : 0;
+    return R + col * HEXW + offset;
+  }
+  function cellY(row){
+    return R + row * ROWH;
+  }
+
+  function colsInRow(row){
+    return (row % 2 === 1) ? COLS - 1 : COLS;
+  }
+
+  function emptyGrid(){
+    const g = [];
+    for(let r=0;r<20;r++){ g.push(Array(colsInRow(r)).fill(null)); }
+    return g;
+  }
+
+  function seedGrid(){
+    grid = emptyGrid();
+    const startRows = 5;
+    for(let r=0;r<startRows;r++){
+      for(let c=0;c<colsInRow(r);c++){
+        grid[r][c] = Math.floor(Math.random()*COLORS.length);
+      }
+    }
+  }
+
+  function randomColor(){
+    // bias toward colors present on the board for solvability
+    const present = new Set();
+    for(let r=0;r<grid.length;r++){
+      for(let c=0;c<grid[r].length;c++){
+        if(grid[r][c] !== null) present.add(grid[r][c]);
+      }
+    }
+    if(present.size === 0) return Math.floor(Math.random()*COLORS.length);
+    const arr = Array.from(present);
+    return arr[Math.floor(Math.random()*arr.length)];
+  }
+
+  function initGame(){
+    seedGrid();
+    score = 0; shots = 0;
+    currentColor = randomColor();
+    nextColor = randomColor();
+    flying = null;
+    particles = [];
+    running = true;
+    overlayEl.style.display = 'none';
+    updateHUD();
+    resize();
+  }
+
+  function updateHUD(){
+    scoreEl.textContent = score;
+    bestEl.textContent = best;
+    shotsEl.textContent = shots;
+  }
+
+  function neighbors(row, col){
+    const res = [];
+    const isOdd = row % 2 === 1;
+    const deltas = isOdd
+      ? [[0,-1],[0,1],[-1,0],[-1,1],[1,0],[1,1]]
+      : [[0,-1],[0,1],[-1,-1],[-1,0],[1,-1],[1,0]];
+    for(const [dr,dc] of deltas){
+      const rr = row+dr, cc = col+dc;
+      if(rr<0||rr>=grid.length) continue;
+      if(cc<0||cc>=grid[rr].length) continue;
+      res.push([rr,cc]);
+    }
+    return res;
+  }
+
+  function findCluster(row, col, color){
+    const visited = new Set();
+    const stack = [[row,col]];
+    const cluster = [];
+    while(stack.length){
+      const [r,c] = stack.pop();
+      const key = r+','+c;
+      if(visited.has(key)) continue;
+      visited.add(key);
+      if(grid[r][c] !== color) continue;
+      cluster.push([r,c]);
+      for(const [nr,nc] of neighbors(r,c)){
+        if(!visited.has(nr+','+nc) && grid[nr][nc] === color) stack.push([nr,nc]);
+      }
+    }
+    return cluster;
+  }
+
+  function findFloating(){
+    // BFS from row 0 (ceiling); anything not connected is floating
+    const visited = new Set();
+    const stack = [];
+    for(let c=0;c<grid[0].length;c++){
+      if(grid[0][c] !== null) stack.push([0,c]);
+    }
+    while(stack.length){
+      const [r,c] = stack.pop();
+      const key = r+','+c;
+      if(visited.has(key)) continue;
+      visited.add(key);
+      for(const [nr,nc] of neighbors(r,c)){
+        if(grid[nr][nc] !== null && !visited.has(nr+','+nc)) stack.push([nr,nc]);
+      }
+    }
+    const floating = [];
+    for(let r=0;r<grid.length;r++){
+      for(let c=0;c<grid[r].length;c++){
+        if(grid[r][c] !== null && !visited.has(r+','+c)) floating.push([r,c]);
+      }
+    }
+    return floating;
+  }
+
+  function popCluster(cluster, isFloating){
+    cluster.forEach(([r,c]) => {
+      const x = cellX(r,c), y = cellY(r);
+      spawnParticles(x, y, COLORS[grid[r][c]]);
+      grid[r][c] = null;
+    });
+    const base = isFloating ? 15 : 10;
+    score += cluster.length * base;
+    if(score > best){ best = score; localStorage.setItem('bs_best', best); }
+    updateHUD();
+  }
+
+  function spawnParticles(x, y, color){
+    for(let i=0;i<8;i++){
+      const angle = (Math.PI*2/8)*i;
+      particles.push({
+        x, y,
+        vx: Math.cos(angle)*3, vy: Math.sin(angle)*3,
+        color, life:1
+      });
+    }
+  }
+
+  function updateParticles(dt){
+    particles = particles.filter(p => p.life > 0);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      p.vy += 0.15;
+      p.life -= 0.04;
+    });
+  }
+
+  function findNearestEmptyCell(x, y){
+    let best = null, bestDist = Infinity;
+    for(let r=0;r<grid.length;r++){
+      for(let c=0;c<grid[r].length;c++){
+        if(grid[r][c] !== null) continue;
+        // only consider cells adjacent to a filled cell or row 0
+        let adjacent = r === 0;
+        if(!adjacent){
+          for(const [nr,nc] of neighbors(r,c)){
+            if(grid[nr][nc] !== null){ adjacent = true; break; }
+          }
+        }
+        if(!adjacent) continue;
+        const cx = cellX(r,c), cy = cellY(r);
+        const d = (cx-x)*(cx-x) + (cy-y)*(cy-y);
+        if(d < bestDist){ bestDist = d; best = [r,c]; }
+      }
+    }
+    return best;
+  }
+
+  function checkTopReached(){
+    for(let c=0;c<grid[DANGER_ROW].length;c++){
+      if(grid[DANGER_ROW][c] !== null) return true;
+    }
+    return false;
+  }
+
+  function checkWin(){
+    for(let r=0;r<grid.length;r++){
+      for(let c=0;c<grid[r].length;c++){
+        if(grid[r][c] !== null) return false;
+      }
+    }
+    return true;
+  }
+
+  function endGame(win){
+    running = false;
+    overlayTitle.textContent = win ? 'CLEAR!' : 'GAME OVER';
+    overlayTitle.className = win ? 'win' : 'lose';
+    overlayMsg.textContent = `최종 점수: ${score} (샷: ${shots})`;
+    overlayEl.style.display = 'flex';
+  }
+
+  // ---- Rendering ----
+  function drawBubble(x, y, colorIdx, radius){
+    if(colorIdx === null || colorIdx === undefined) return;
+    const grad = ctx.createRadialGradient(x-radius*0.3, y-radius*0.3, radius*0.1, x, y, radius);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.25, COLORS[colorIdx]);
+    grad.addColorStop(1, COLORS[colorIdx]);
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI*2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+    ctx.stroke();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,CW,CH);
+
+    // danger line
+    const dangerY = cellY(DANGER_ROW) + R*1.5;
+    ctx.strokeStyle = 'rgba(255,77,109,0.4)';
+    ctx.setLineDash([6,6]);
+    ctx.beginPath();
+    ctx.moveTo(0, dangerY);
+    ctx.lineTo(CW, dangerY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    for(let r=0;r<grid.length;r++){
+      for(let c=0;c<grid[r].length;c++){
+        if(grid[r][c] === null) continue;
+        drawBubble(cellX(r,c), cellY(r), grid[r][c], R*0.92);
+      }
+    }
+
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(p.life,0);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, R*0.25, 0, Math.PI*2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+
+    // shooter base
+    const baseY = CH - R*1.6;
+    const baseX = CW/2;
+
+    // aim line
+    if(aiming){
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4,6]);
+      ctx.beginPath();
+      ctx.moveTo(baseX, baseY);
+      const len = 400;
+      ctx.lineTo(baseX + Math.cos(shooterAngle)*len, baseY + Math.sin(shooterAngle)*len);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // next bubble preview
+    drawBubble(baseX - R*2.4, baseY, nextColor, R*0.6);
+
+    // current shooter bubble
+    if(!flying){
+      drawBubble(baseX, baseY, currentColor, R*0.92);
+    } else {
+      drawBubble(flying.x, flying.y, flying.color, R*0.92);
+    }
+
+    // cannon
+    ctx.save();
+    ctx.translate(baseX, baseY);
+    ctx.rotate(shooterAngle + Math.PI/2);
+    ctx.fillStyle = '#3a3f6e';
+    ctx.fillRect(-R*0.35, 0, R*0.7, R*1.6);
+    ctx.restore();
+  }
+
+  // ---- Shooting ----
+  function shoot(){
+    if(flying || !running) return;
+    const baseY = CH - R*1.6;
+    const baseX = CW/2;
+    const speed = 12;
+    flying = {
+      x: baseX, y: baseY,
+      vx: Math.cos(shooterAngle)*speed,
+      vy: Math.sin(shooterAngle)*speed,
+      color: currentColor
+    };
+    shots++;
+    updateHUD();
+  }
+
+  function settleFlying(){
+    const cell = findNearestEmptyCell(flying.x, flying.y);
+    if(cell){
+      const [r,c] = cell;
+      grid[r][c] = flying.color;
+      const cluster = findCluster(r,c,flying.color);
+      if(cluster.length >= 3){
+        popCluster(cluster, false);
+        const floating = findFloating();
+        if(floating.length) popCluster(floating, true);
+      }
+    }
+    flying = null;
+    currentColor = nextColor;
+    nextColor = randomColor();
+
+    if(checkWin()){ endGame(true); return; }
+    if(checkTopReached()){ endGame(false); return; }
+  }
+
+  function updateFlying(){
+    if(!flying) return;
+    flying.x += flying.vx;
+    flying.y += flying.vy;
+    if(flying.x - R < 0){ flying.x = R; flying.vx *= -1; }
+    if(flying.x + R > CW){ flying.x = CW - R; flying.vx *= -1; }
+    if(flying.y - R < 0){ settleFlying(); return; }
+    // collision with existing bubbles
+    for(let r=0;r<grid.length;r++){
+      for(let c=0;c<grid[r].length;c++){
+        if(grid[r][c] === null) continue;
+        const x = cellX(r,c), y = cellY(r);
+        const dx = flying.x - x, dy = flying.y - y;
+        if(dx*dx + dy*dy < (R*1.85)*(R*1.85)){
+          settleFlying();
+          return;
+        }
+      }
+    }
+  }
+
+  // ---- Input ----
+  function angleFromPointer(clientX, clientY){
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    const baseY = CH - R*1.6;
+    const baseX = CW/2;
+    let angle = Math.atan2(y - baseY, x - baseX);
+    // clamp to upward hemisphere
+    const minA = -Math.PI + 0.15;
+    const maxA = -0.15;
+    if(angle > 0) angle = angle - Math.PI*2;
+    if(angle < minA) angle = minA;
+    if(angle > maxA) angle = maxA;
+    return angle;
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if(!running) return;
+    aiming = true;
+    shooterAngle = angleFromPointer(e.clientX, e.clientY);
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if(!aiming) return;
+    shooterAngle = angleFromPointer(e.clientX, e.clientY);
+  });
+  window.addEventListener('pointerup', () => {
+    if(aiming){ aiming = false; shoot(); }
+  });
+
+  window.addEventListener('resize', resize);
+
+  function loop(){
+    updateFlying();
+    updateParticles();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  window.restartGame = initGame;
+  initGame();
+  loop();
+})();
+</script>
+</body>
+</html>
