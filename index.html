@@ -253,6 +253,17 @@ footer.site a:hover { color: var(--phosphor); }
   transform: translateY(-2px);
 }
 
+.game-card .thumb {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 6px;
+  border: 1px solid var(--panel-line);
+  margin-bottom: 12px;
+  display: block;
+}
+
 .game-card .name {
   font-size: 17px;
   color: var(--phosphor);
@@ -459,30 +470,35 @@ footer.site a:hover { color: var(--phosphor); }
   <div class="game-list">
 
     <a class="game-card" href="memory.html">
+      <img class="thumb" src="images/memory-circuit.jpg" alt="메모리 서킷 게임 화면" loading="lazy">
       <div class="name"><span class="name-main">메모리 서킷 <span class="name-en">Memory Circuit</span></span><span class="play">플레이 &gt;</span></div>
       <div class="desc">순서대로 빛나는 패드를 그대로 따라 누르는 기억력 게임. 레벨이 오를수록 순서가 길어집니다.</div>
       <div class="desc-en">Repeat the glowing pad sequence in order. The sequence gets longer as you level up.</div>
     </a>
 
     <a class="game-card" href="reaction.html">
+      <img class="thumb" src="images/reflex-test.jpg" alt="리플렉스 테스트 게임 화면" loading="lazy">
       <div class="name"><span class="name-main">리플렉스 테스트 <span class="name-en">Reflex Test</span></span><span class="play">플레이 &gt;</span></div>
       <div class="desc">화면이 초록색으로 바뀌는 순간 클릭하세요. 당신의 반응속도를 밀리초 단위로 측정합니다.</div>
       <div class="desc-en">Click the moment the screen turns green. Measures your reaction speed in milliseconds.</div>
     </a>
 
     <a class="game-card" href="baseball.html">
+      <img class="thumb" src="images/number-code.jpg" alt="넘버 코드 게임 화면" loading="lazy">
       <div class="name"><span class="name-main">넘버 코드 <span class="name-en">Number Code</span></span><span class="play">플레이 &gt;</span></div>
       <div class="desc">숨겨진 3자리 숫자 코드를 추리하세요. 스트라이크와 볼 힌트로 정답을 좁혀갑니다.</div>
       <div class="desc-en">Guess the hidden 3-digit code. Narrow it down using strike and ball hints.</div>
     </a>
        
 <a class="game-card" href="block-blast.html">
+  <img class="thumb" src="images/block-blast.jpg" alt="블록 블래스트 게임 화면" loading="lazy">
   <div class="name"><span class="name-main">블록 블래스트 <span class="name-en">Block Blast</span></span><span class="play">플레이 &gt;</span></div>
   <div class="desc">다양한 모양의 블록을 격자에 배치해 줄을 채우면 터뜨리는 퍼즐 게임. 콤보를 이어가며 최고점수에 도전하세요.</div>
   <div class="desc-en">Place blocks on the grid to clear full lines. Chain combos for a high score.</div>
 </a>
 
 <a class="game-card" href="bubble-shooter.html">
+  <img class="thumb" src="images/bubble-shooter.jpg" alt="버블 슈터 게임 화면" loading="lazy">
   <div class="name"><span class="name-main">버블 슈터 <span class="name-en">Bubble Shooter</span></span><span class="play">플레이 &gt;</span></div>
   <div class="desc">색깔 버블을 조준해 발사하고, 같은 색 3개 이상을 맞춰 터뜨리는 클래식 슈팅 퍼즐 게임.</div>
   <div class="desc-en">Aim and shoot colored bubbles. Match 3 or more of the same color to pop them.</div>
