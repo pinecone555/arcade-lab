@@ -38,9 +38,10 @@
     touch-action:none;
     user-select:none;
   }
+  body{ display:flex; flex-direction:column; min-height:100vh; }
   #app{
     max-width:480px; margin:0 auto; padding:14px 14px 24px;
-    min-height:100vh;
+    flex:1 1 auto;
     display:flex; flex-direction:column; align-items:center;
   }
   h1{
@@ -123,9 +124,37 @@
     transition:all .5s ease;
   }
   #combo-toast.show{ opacity:1; transform:translate(-50%,0); }
+
+  .site-header{
+    width:100%; max-width:480px; margin:0 auto;
+    display:flex; justify-content:space-between; align-items:baseline;
+    flex-wrap:wrap; gap:6px 14px;
+    padding:12px 14px 10px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .site-header .logo{
+    font-weight:800; letter-spacing:1px; font-size:14px;
+    background:linear-gradient(90deg, var(--accent2), var(--accent));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-decoration:none; white-space:nowrap;
+  }
+  .site-header nav{ display:flex; flex-wrap:wrap; gap:3px 12px; }
+  .site-header nav a{ color:var(--muted); font-size:11px; text-decoration:none; white-space:nowrap; }
+  .site-header nav a:hover{ color:var(--accent2); }
 </style>
 </head>
 <body>
+<div class="site-header">
+  <a class="logo" href="index.html">ARCADE LAB</a>
+  <nav>
+    <a href="index.html">홈 Home</a>
+    <a href="memory.html">메모리 서킷 Memory Circuit</a>
+    <a href="reaction.html">리플렉스 테스트 Reflex Test</a>
+    <a href="baseball.html">넘버 코드 Number Code</a>
+    <a href="bubble-shooter.html">버블 슈터 Bubble Shooter</a>
+    <a href="privacy.html">개인정보처리방침 Privacy Policy</a>
+  </nav>
+</div>
 <div id="app">
   <h1>BLOCK BLAST</h1>
   <div class="sub">블록을 끌어다 놓아 줄을 채워보세요</div>
