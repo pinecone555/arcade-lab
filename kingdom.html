@@ -68,6 +68,11 @@
   .hills-far{position:absolute;left:0;right:0;bottom:0;height:70%;background:var(--emerald);opacity:0.35;clip-path:polygon(0 60%,15% 40%,32% 55%,50% 30%,68% 52%,86% 38%,100% 55%,100% 100%,0 100%);}
   .hills-near{position:absolute;left:0;right:0;bottom:0;height:52%;background:var(--emerald-deep);opacity:0.55;clip-path:polygon(0 70%,20% 50%,40% 68%,60% 45%,80% 66%,100% 48%,100% 100%,0 100%);}
 
+  .scene-props{position:absolute;inset:0;pointer-events:none;}
+  .prop{position:absolute;transform:translateX(-50%);transition:opacity 0.4s ease;}
+  .prop svg{display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.28));}
+  .prop-more{position:absolute;transform:translateX(-50%);background:rgba(20,16,10,0.72);color:#f3e8ca;font-size:9px;font-weight:800;padding:1px 5px;border-radius:8px;white-space:nowrap;}
+
   .castle{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);cursor:pointer;border:0;background:none;padding:0;filter:drop-shadow(0 6px 8px rgba(0,0,0,0.25));}
   .castle:active svg{transform:scale(0.96);}
   .castle svg{width:150px;height:130px;display:block;transition:transform 0.08s ease;}
@@ -184,6 +189,7 @@
       <div class="stars" id="starsLayer"></div>
       <div class="hills-far"></div>
       <div class="hills-near"></div>
+      <div class="scene-props" id="sceneProps"></div>
       <button class="castle" id="castleBtn" aria-label="궁을 눌러 세금을 걷습니다">
         <svg viewBox="0 0 150 130" fill="none">
           <rect class="wall" x="10" y="100" width="130" height="12" fill="#8a7350"/>
@@ -338,6 +344,57 @@
   ];
 
   var PRESTIGE_UNLOCK = 100000000;
+
+  /* Scene props: small silhouettes scattered on the hills so the village
+     visibly grows as each building type is built. Each slot is one visible
+     unit; beyond that we show a "+N" tag instead of adding more clutter. */
+  var PROP_ZONES = {
+    hut: {
+      size:22,
+      svg:'<path d="M2 16 L8 9 L14 16 Z" fill="#a9895a"/><rect x="4" y="16" width="8" height="6" fill="#d8c9a0"/>',
+      slots:[[4,14],[10,15],[16,13],[22,16],[28,14]]
+    },
+    cottage: {
+      size:22,
+      svg:'<path d="M1 14 L8 6 L15 14 Z" fill="#8a7350"/><rect x="3" y="14" width="10" height="7" fill="#e3d6ad"/><rect x="6.5" y="16" width="3" height="3" fill="#5b4230"/>',
+      slots:[[7,50],[14,52],[21,49],[28,53],[35,50]]
+    },
+    farm: {
+      size:22,
+      svg:'<rect x="0" y="6" width="16" height="9" rx="2" fill="#6f8f4a"/><line x1="2" y1="9" x2="14" y2="9" stroke="#4f6b34" stroke-width="1"/><line x1="2" y1="12" x2="14" y2="12" stroke="#4f6b34" stroke-width="1"/>',
+      slots:[[68,14],[74,16],[80,13],[86,15],[92,14]]
+    },
+    market: {
+      size:22,
+      svg:'<path d="M1 12 L8 5 L15 12 Z" fill="#9e2a2b"/><rect x="3" y="12" width="10" height="6" fill="#e9dfc4"/>',
+      slots:[[62,49],[69,52],[76,50],[83,53],[90,49]]
+    },
+    blacksmith: {
+      size:17,
+      svg:'<rect x="2" y="10" width="10" height="8" fill="#4a4038"/><circle cx="7" cy="9" r="2" fill="#e3702f"/>',
+      slots:[[8,84],[16,87],[24,83]]
+    },
+    quarry: {
+      size:17,
+      svg:'<path d="M1 16 L6 8 L10 16 Z" fill="#8f8a7c"/><path d="M7 16 L11 10 L15 16 Z" fill="#a39d8c"/>',
+      slots:[[70,83],[78,86],[86,82]]
+    },
+    shrine: {
+      size:19,
+      svg:'<path d="M4 18 L8 12 L12 18 Z" fill="#8f8a7c"/><path d="M5.5 12 L8 7 L10.5 12 Z" fill="#7a756a"/><line x1="8" y1="7" x2="8" y2="2" stroke="#4a5a3a" stroke-width="1.4"/>',
+      slots:[[38,92],[62,94]]
+    },
+    bazaar: {
+      size:20,
+      svg:'<path d="M1 14 Q8 3 15 14 Z" fill="#7a2e3b"/><rect x="1" y="14" width="14" height="3" fill="#e9dfc4"/>',
+      slots:[[41,18],[59,19]]
+    },
+    treasury: {
+      size:19,
+      svg:'<rect x="2" y="10" width="12" height="8" rx="1.5" fill="#8a6a2a"/><rect x="7" y="12" width="2" height="3" fill="#3a2c1c"/>',
+      slots:[[33,17],[67,18]]
+    }
+  };
 
   /* ---------------- State ---------------- */
 
@@ -587,11 +644,35 @@
     els.prestigeBtn.disabled = gain < 1;
   }
 
+  function renderSceneProps(){
+    var container = document.getElementById("sceneProps");
+    if(!container) return;
+    var html = "";
+    BUILDINGS.forEach(function(b){
+      var zone = PROP_ZONES[b.id];
+      if(!zone) return;
+      var owned = state.buildings[b.id];
+      if(owned <= 0) return;
+      var shown = Math.min(owned, zone.slots.length);
+      for(var i=0;i<shown;i++){
+        var slot = zone.slots[i];
+        html += '<div class="prop" style="left:'+slot[0]+'%;bottom:'+slot[1]+'px;">' +
+                '<svg viewBox="0 0 16 22" width="'+zone.size+'" height="'+Math.round(zone.size*1.375)+'">'+zone.svg+'</svg></div>';
+      }
+      if(owned > zone.slots.length){
+        var last = zone.slots[zone.slots.length-1];
+        html += '<div class="prop-more" style="left:'+(last[0]+6)+'%;bottom:'+(last[1]+4)+'px;">+'+fmt(owned-zone.slots.length)+'</div>';
+      }
+    });
+    container.innerHTML = html;
+  }
+
   function renderAll(){
     renderHUD();
     renderBuildings();
     renderUpgrades();
     renderPrestige();
+    renderSceneProps();
   }
 
   /* ---------------- Actions ---------------- */
@@ -622,6 +703,7 @@
     state.buildings[id] += 1;
     renderBuildings();
     renderHUD();
+    renderSceneProps();
   }
 
   function buyUpgrade(id){
@@ -757,6 +839,7 @@
 
     if(existing){
       state = existing;
+      els.welcomeModal.classList.add("hidden");
       applyAccent();
       document.body.setAttribute("data-age", currentAge().id);
       lastAgeId = currentAge().id;
