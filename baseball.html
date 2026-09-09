@@ -442,27 +442,29 @@ footer.site a:hover { color: var(--phosphor); }
       </div>
 
       <div class="game-title">NUMBER CODE</div>
-      <div class="game-subtitle">서로 다른 숫자 3자리를 맞춰보세요 (0~9)</div>
+      <div class="game-subtitle">Guess 3 different digits (0-9)</div>
 
       <div class="terminal">
-        <div class="status" id="status">숫자 3자리를 입력하고 확인을 누르세요</div>
+        <div class="status" id="status">Enter 3 digits and press Confirm</div>
         <div class="prompt">
           <input type="text" id="guessInput" maxlength="3" inputmode="numeric" placeholder="375">
-          <button class="guess-btn" id="guessBtn">확인</button>
+          <button class="guess-btn" id="guessBtn">Confirm</button>
         </div>
         <div class="log" id="log"></div>
       </div>
 
-      <button class="start-btn" id="resetBtn" style="margin-top:14px;">다시 시작</button>
+      <button class="start-btn" id="resetBtn" style="margin-top:14px;">Restart</button>
     </div>
   </div>
 </section>
 
 <div class="wrap about">
-  <h2>이 게임은?</h2>
+  <h2>이 게임은? <span style="font-size:14px; color:var(--text-dim); font-weight:normal;">About this game</span></h2>
   <p>
     컴퓨터가 서로 다른 숫자 3개로 만든 코드를 숨겨놓았습니다. 숫자와 자리가 모두 맞으면
-    스트라이크(S), 숫자는 맞지만 자리가 다르면 볼(B)입니다. 3스트라이크가 나오면 정답입니다.
+    스트라이크(S), 숫자는 맞지만 자리가 다르면 볼(B)입니다. 3스트라이크가 나오면 정답입니다.<br>
+    <span style="opacity:0.75; font-style:italic;">The computer hides a code made of 3 different digits. A strike (S) means a digit is right
+    and in the right spot; a ball (B) means the digit is right but in the wrong spot. Get 3 strikes to win.</span>
   </p>
 </div>
 
@@ -494,7 +496,7 @@ footer.site a:hover { color: var(--phosphor); }
     tries = 0;
     finished = false;
     triesEl.textContent = '0';
-    statusEl.textContent = '숫자 3자리를 입력하고 확인을 누르세요';
+    statusEl.textContent = 'Enter 3 digits and press Confirm';
     statusEl.style.color = '';
     logEl.innerHTML = '';
     inputEl.value = '';
@@ -517,12 +519,12 @@ footer.site a:hover { color: var(--phosphor); }
     const guess = inputEl.value.trim();
 
     if (!/^[0-9]{3}$/.test(guess)) {
-      statusEl.textContent = '숫자 3자리를 입력하세요';
+      statusEl.textContent = 'Enter 3 digits';
       statusEl.style.color = '#ff6b6b';
       return;
     }
     if (new Set(guess.split('')).size !== 3) {
-      statusEl.textContent = '서로 다른 숫자 3개여야 합니다';
+      statusEl.textContent = 'Digits must all be different';
       statusEl.style.color = '#ff6b6b';
       return;
     }
@@ -538,14 +540,14 @@ footer.site a:hover { color: var(--phosphor); }
     codeSpan.textContent = guess.split('').join(' ');
     const resultSpan = document.createElement('span');
     resultSpan.className = 'result';
-    resultSpan.textContent = strikes === 3 ? '홈런!' : `${strikes}S ${balls}B`;
+    resultSpan.textContent = strikes === 3 ? 'Home run!' : `${strikes}S ${balls}B`;
     row.appendChild(codeSpan);
     row.appendChild(resultSpan);
     logEl.appendChild(row);
 
     if (strikes === 3) {
       finished = true;
-      statusEl.textContent = `정답입니다! ${tries}번만에 맞췄어요`;
+      statusEl.textContent = `Correct! Solved in ${tries} tries`;
       statusEl.style.color = '';
       inputEl.disabled = true;
       guessBtn.disabled = true;
@@ -554,7 +556,7 @@ footer.site a:hover { color: var(--phosphor); }
         bestEl.textContent = best;
       }
     } else {
-      statusEl.textContent = '숫자 3자리를 입력하고 확인을 누르세요';
+      statusEl.textContent = 'Enter 3 digits and press Confirm';
       statusEl.style.color = '';
       inputEl.value = '';
       inputEl.focus();

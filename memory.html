@@ -441,9 +441,9 @@ footer.site a:hover { color: var(--phosphor); }
       </div>
 
       <div class="game-title">MEMORY CIRCUIT</div>
-      <div class="game-subtitle">순서를 기억하고 그대로 따라 누르세요</div>
+      <div class="game-subtitle">Repeat the sequence in order</div>
 
-      <div class="message" id="message">START를 눌러 시작</div>
+      <div class="message" id="message">Press START to begin</div>
 
       <div class="pad-grid">
         <button class="pad pad-0" data-idx="0" disabled></button>
@@ -458,11 +458,14 @@ footer.site a:hover { color: var(--phosphor); }
 </section>
 
 <div class="wrap about">
-  <h2>이 게임은?</h2>
+  <h2>이 게임은? <span style="font-size:14px; color:var(--text-dim); font-weight:normal;">About this game</span></h2>
   <p>
     메모리 서킷은 클래식 "사이먼 게임" 방식의 순서 기억 게임입니다.
     패드가 빛나는 순서를 눈으로 익힌 뒤, 그대로 다시 눌러 재현하면 다음 레벨로 넘어갑니다.
-    최고 기록은 이 브라우저 세션 동안 저장됩니다.
+    최고 기록은 이 브라우저 세션 동안 저장됩니다.<br>
+    <span style="opacity:0.75; font-style:italic;">Memory Circuit is a classic "Simon"-style sequence memory game.
+    Watch the order the pads light up, then repeat it to advance to the next level.
+    Your best score is saved for this browser session.</span>
   </p>
 </div>
 
@@ -496,12 +499,12 @@ footer.site a:hover { color: var(--phosphor); }
   async function playSequence() {
     acceptingInput = false;
     setPadsEnabled(false);
-    messageEl.textContent = '패턴을 잘 보세요...';
+    messageEl.textContent = 'Watch the pattern...';
     await new Promise(r => setTimeout(r, 500));
     for (const idx of sequence) {
       await lightPad(idx);
     }
-    messageEl.textContent = '이제 따라 눌러보세요';
+    messageEl.textContent = 'Now repeat it';
     playerStep = 0;
     acceptingInput = true;
     setPadsEnabled(true);
@@ -520,9 +523,9 @@ footer.site a:hover { color: var(--phosphor); }
       best = sequence.length - 1;
       bestEl.textContent = best;
     }
-    messageEl.textContent = `게임 오버! 레벨 ${sequence.length - 1}에서 종료`;
+    messageEl.textContent = `Game Over! Reached level ${sequence.length - 1}`;
     startBtn.disabled = false;
-    startBtn.textContent = '다시 시작';
+    startBtn.textContent = 'Restart';
   }
 
   pads.forEach(pad => {
@@ -537,7 +540,7 @@ footer.site a:hover { color: var(--phosphor); }
         if (playerStep === sequence.length) {
           acceptingInput = false;
           setPadsEnabled(false);
-          messageEl.textContent = '정답! 다음 레벨 준비중...';
+          messageEl.textContent = 'Correct! Next level...';
           setTimeout(nextRound, 700);
         }
       } else {

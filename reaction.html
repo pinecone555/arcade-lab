@@ -442,26 +442,29 @@ footer.site a:hover { color: var(--phosphor); }
       </div>
 
       <div class="game-title">REFLEX TEST</div>
-      <div class="game-subtitle">초록색으로 바뀌는 순간 클릭하세요</div>
+      <div class="game-subtitle">Click the moment it turns green</div>
 
       <div class="reflex-box idle" id="box">
-        <div class="big" id="bigText">클릭해서 시작</div>
-        <div class="small" id="smallText">색이 바뀌면 최대한 빨리 클릭!</div>
+        <div class="big" id="bigText">Click to start</div>
+        <div class="small" id="smallText">Click as fast as you can when it changes!</div>
       </div>
 
       <div class="reflex-stats">
-        <span>최근 <b id="lastMs">-</b></span>
-        <span>평균 <b id="avgMs">-</b></span>
+        <span>LAST <b id="lastMs">-</b></span>
+        <span>AVG <b id="avgMs">-</b></span>
       </div>
     </div>
   </div>
 </section>
 
 <div class="wrap about">
-  <h2>이 게임은?</h2>
+  <h2>이 게임은? <span style="font-size:14px; color:var(--text-dim); font-weight:normal;">About this game</span></h2>
   <p>
     화면이 붉은색(대기)일 때 클릭하면 실격 처리됩니다. 초록색으로 바뀌는 정확한 순간에
-    클릭할수록 반응속도(밀리초)가 낮게 나옵니다. 평균적인 사람의 반응속도는 200~300ms 정도예요.
+    클릭할수록 반응속도(밀리초)가 낮게 나옵니다. 평균적인 사람의 반응속도는 200~300ms 정도예요.<br>
+    <span style="opacity:0.75; font-style:italic;">Clicking while the screen is red (waiting) disqualifies the attempt. The closer you click
+    to the exact moment it turns green, the lower (better) your reaction time in milliseconds.
+    The average person's reaction time is around 200-300ms.</span>
   </p>
 </div>
 
@@ -484,17 +487,17 @@ footer.site a:hover { color: var(--phosphor); }
   function render() {
     box.className = 'reflex-box ' + (phase === 'ready' ? 'idle' : phase);
     if (phase === 'ready') {
-      bigText.textContent = tries === 0 ? '클릭해서 시작' : '클릭해서 다시 도전';
-      smallText.textContent = '색이 바뀌는 순간 클릭!';
+      bigText.textContent = tries === 0 ? 'Click to start' : 'Click to try again';
+      smallText.textContent = 'Click the moment it changes!';
     } else if (phase === 'waiting') {
-      bigText.textContent = '기다리세요...';
-      smallText.textContent = '아직 클릭하지 마세요';
+      bigText.textContent = 'Wait for it...';
+      smallText.textContent = "Don't click yet";
     } else if (phase === 'go') {
-      bigText.textContent = '지금 클릭!!';
+      bigText.textContent = 'Click now!!';
       smallText.textContent = '';
     } else if (phase === 'early') {
-      bigText.textContent = '너무 빨랐어요!';
-      smallText.textContent = '클릭해서 다시 도전';
+      bigText.textContent = 'Too soon!';
+      smallText.textContent = 'Click to try again';
     }
   }
 
